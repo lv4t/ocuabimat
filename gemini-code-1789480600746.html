@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi: Ô Cửa Bí Mật</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            
+            /* Thêm background từ file ảnh của bạn */
+            background-image: url('image_2f45f3.jpg');
+            background-size: cover; /* Phóng to ảnh vừa khít toàn màn hình */
+            background-position: center bottom; /* Canh giữa ảnh */
+            background-repeat: no-repeat; /* Không lặp lại ảnh */
+            background-attachment: fixed; /* Giữ cố định nền khi cuộn trang */
+        }
+        
+        h1 {
+            color: #d84315;
+            /* Thêm nền trắng trong suốt để chữ không bị chìm vào background */
+            background: rgba(255, 204, 128, 0.9); 
+            padding: 15px 30px;
+            border-radius: 20px;
+            border: 4px dashed #ff9800;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-top: 20px;
+            backdrop-filter: blur(4px); /* Hiệu ứng làm mờ nền nhẹ */
+        }
+        
+        .doors-container {
+            display: flex;
+            gap: 25px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+            /* Thêm một lớp nền mờ phía sau các cánh cửa để tách biệt với background */
+            background: rgba(255, 255, 255, 0.4);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+        }
+        
+        .door-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .question-mark {
+            font-size: 45px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff; /* Viền trắng cho dấu chấm hỏi */
+            animation: bounce 2s infinite; /* Hiệu ứng nhún nhảy */
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-15px); }
+            60% { transform: translateY(-7px); }
+        }
+
+        .door {
+            width: 120px;
+            height: 180px;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            position: relative;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3), 0 8px 15px rgba(0,0,0,0.4);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s;
+            border: 3px solid #4e342e;
+        }
+        
+        .door:hover {
+            transform: scale(1.1) translateY(-10px);
+            filter: brightness(1.15);
+        }
+        
+        .door::after {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background-color: #ffd54f;
+            border-radius: 50%;
+            border: 2px solid #f57f17;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .door-red { background-color: #e53935; }
+        .door-red-q { color: #e53935; }
+        .door-blue { background-color: #1e88e5; }
+        .door-blue-q { color: #1e88e5; }
+        .door-yellow { background-color: #ffb300; }
+        .door-yellow-q { color: #ffb300; }
+        .door-green { background-color: #43a047; }
+        .door-green-q { color: #43a047; }
+
+        /* Modal Styles giữ nguyên */
+        #content-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 5px solid #8d6e63;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .modal-box h2 { color: #2e7d32; font-size: 26px; margin-top: 0;}
+        .modal-box p { font-size: 17px; color: #424242; line-height: 1.6; }
+        
+        /* Quiz Styles giữ nguyên */
+        #quiz-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px dashed #bdbdbd;
+            background-color: #f1f8e9;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        #quiz-question {
+            color: #1565c0;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .quiz-btn {
+            background-color: #fff;
+            color: #333;
+            border: 2px solid #64b5f6;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            font-family: inherit;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .quiz-btn:hover { background-color: #e3f2fd; transform: scale(1.02); }
+        .quiz-btn:disabled { cursor: not-allowed; opacity: 0.7; transform: none; }
+        
+        #quiz-feedback {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 15px;
+            min-height: 27px;
+        }
+
+        .close-btn {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .close-btn:hover { background: #c62828; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+    <!-- Nếu bạn thấy tiêu đề này bị lặp lại với tấm bảng gỗ trong hình nền, 
+         bạn có thể xóa hoặc ẩn dòng <h1> này đi -->
+    <h1>TRÒ CHƠI: Ô CỬA BÍ MẬT! 💡</h1>
+    
+    <div class="doors-container">
+        <div class="door-wrapper" onclick="openDoor(0)">
+            <div class="question-mark door-red-q">❓</div>
+            <div class="door door-red"></div>
+        </div>
+        <div class="door-wrapper" onclick="openDoor(1)">
+            <div class="question-mark door-blue-q">❓</div>
+            <div class="door door-blue"></div>
+        </div>
+        <div class="door-wrapper" onclick="openDoor(2)">
+            <div class="question-mark door-yellow-q">❓</div>
+            <div class="door door-yellow"></div>
+        </div>
+        <div class="door-wrapper" onclick="openDoor(3)">
+            <div class="question-mark door-green-q">❓</div>
+            <div class="door door-green"></div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại Modal -->
+    <div id="content-modal">
+        <div class="modal-box">
+            <h2 id="modal-title">Tiêu đề</h2>
+            <div id="modal-image" style="font-size: 55px; margin: 10px 0;">🌱</div>
+            <p id="modal-desc">Nội dung giải thích sẽ hiện ở đây.</p>
+            
+            <div id="quiz-section">
+                <div id="quiz-question">Câu hỏi?</div>
+                <div id="quiz-options"></div>
+                <div id="quiz-feedback"></div>
+            </div>
+
+            <button class="close-btn" onclick="closeModal()">Đóng Cửa Lại</button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu kịch bản game giữ nguyên như trước
+        const doorData = [
+            {
+                title: "Điều kiện sống của cây",
+                emoji: "🌱 ☀️ 💧",
+                desc: "Cây xanh rất cần ánh sáng mặt trời và được tưới nước đều đặn để quang hợp và lớn lên khỏe mạnh mỗi ngày!",
+                question: "Cây xanh cần những gì để lớn lên khỏe mạnh?",
+                options: ["A. Nước ngọt và kẹo", "B. Ánh sáng mặt trời và nước", "C. Bóng tối và đồ chơi"],
+                correctIndex: 1
+            },
+            {
+                title: "Hiện tượng mao dẫn",
+                emoji: "💧 ⬆️ 🧻",
+                desc: "Nước có thể leo ngược lên cao thông qua các khe hở siêu nhỏ của sợi vải hoặc cuộn giấy. Đây gọi là hiện tượng mao dẫn!",
+                question: "Nước leo lên cao qua sợi vải nhờ hiện tượng gì?",
+                options: ["A. Hiện tượng mao dẫn", "B. Hiện tượng bay hơi", "C. Hiện tượng đóng băng"],
+                correctIndex: 0
+            },
+            {
+                title: "Chuyện gì xảy ra khi đi vắng?",
+                emoji: "🥀 🧳",
+                desc: "Khi gia đình đi du lịch dài ngày mà không ai tưới nước, đất sẽ khô cằn và cây xanh sẽ bị héo úa.",
+                question: "Nếu không được tưới nước nhiều ngày, cây sẽ ra sao?",
+                options: ["A. Cây sẽ mọc nhanh hơn", "B. Cây sẽ mọc ra nhiều quả", "C. Cây sẽ bị héo và chết"],
+                correctIndex: 2
+            },
+            {
+                title: "Giải pháp Kỹ sư nhí!",
+                emoji: "♻️ 🌱",
+                desc: "Dùng 1 nửa chai nhựa và 1 sợi dây vải, áp dụng 'mao dẫn', ta đã tạo ra một chậu cây tự hút nước. Đi du lịch không lo cây chết nhé!",
+                question: "Kỹ sư nhí đã dùng vật liệu gì để làm chậu cây tự tưới?",
+                options: ["A. Chai nhựa và sợi dây vải", "B. Giấy báo và keo dán", "C. Đất nặn và ống hút"],
+                correctIndex: 0
+            }
+        ];
+
+        let currentCorrectIndex = -1;
+
+        function openDoor(index) {
+            const data = doorData[index];
+            document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('modal-image').innerText = data.emoji;
+            document.getElementById('modal-desc').innerText = data.desc;
+            
+            document.getElementById('quiz-question').innerText = "❓ " + data.question;
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = ""; 
+            
+            data.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(i, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            currentCorrectIndex = data.correctIndex;
+            document.getElementById('quiz-feedback').innerText = ""; 
+            
+            document.getElementById('content-modal').style.display = 'flex';
+        }
+
+        function checkAnswer(selectedIndex, clickedBtn) {
+            const feedback = document.getElementById('quiz-feedback');
+            const buttons = document.querySelectorAll('.quiz-btn');
+
+            if (selectedIndex === currentCorrectIndex) {
+                feedback.innerHTML = "🎉 Hoan hô! Con trả lời đúng rồi!";
+                feedback.style.color = "#2e7d32";
+                clickedBtn.style.backgroundColor = "#c8e6c9";
+                clickedBtn.style.borderColor = "#4caf50";
+                
+                buttons.forEach(btn => btn.disabled = true);
+            } else {
+                feedback.innerHTML = "❌ Sai mất rồi. Con thử lại nhé!";
+                feedback.style.color = "#d32f2f";
+                clickedBtn.style.backgroundColor = "#ffcdd2";
+                clickedBtn.style.borderColor = "#f44336";
+                
+                setTimeout(() => {
+                    clickedBtn.style.backgroundColor = "#fff";
+                    clickedBtn.style.borderColor = "#64b5f6";
+                    if(feedback.innerHTML.includes("Sai")) feedback.innerHTML = "";
+                }, 1500);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('content-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
